@@ -10,10 +10,10 @@
 #include <cstdlib>
 
 // Parsing Exceptions
-class OptionParsingError : public std::exception {
+class OptionParsingError : public std::runtime_error {
 public:
     OptionParsingError(const std::string& message) :
-        std::exception(message.c_str()) {
+        std::runtime_error(message) {
 
     }
 };
@@ -140,6 +140,10 @@ public:
             m_long_name = name;
     }
 
+    virtual ~option() {
+
+    }
+
     bool isset() {
         return m_isset;
     }
@@ -218,7 +222,7 @@ public:
 
     int parse_arguments(int argc, char* argv[], int cur_pos) {
         try {
-            return consume_n_arguments(argc, argv, cur_pos + 1, 1); //capture all arguments after option;
+            return consume_n_arguments(argc, argv, cur_pos + 1, 1); //capture n arguments after option;
         }
         catch(std::invalid_argument e) {
             throw InvalidArgumentFormatError("invalid argument format: " + std::string(argv[cur_pos + 1])); 
@@ -284,6 +288,28 @@ private:
 
 class cmdline_parser {
 public:
+    typedef std::list<option*>::iterator option_iter;
+    typedef std::list<option*>::const_iterator const_option_iter;
+    typedef std::list<arg*>::iterator arg_iter;
+    typedef std::list<arg*>::const_iterator const_arg_iter;
+
+    cmdline_parser() :
+            m_help_option(new switch_option("h", "help", "displays this help message", false)) {
+        //add a default help option
+        add(m_help_option);
+    }
+
+    ~cmdline_parser() {
+        //cleanup
+        option_iter end = m_optlist.end();
+        for(option_iter it = m_optlist.begin(); it != end; ++it) {
+            if((*it)->name() == "help") {
+                m_optlist.erase(it);
+            }
+        }
+        delete m_help_option;
+    }
+
     void add(option* opt) {
         m_optlist.push_back(opt);
     }
@@ -298,6 +324,10 @@ public:
 
     void add(arg& argument) {
         m_posargs.push_back(&argument);
+    }
+
+    bool is_help_selected() {
+        return m_help_option->isset();
     }
 
     void parseopt(int argc, char* argv[]) {
@@ -350,20 +380,20 @@ private:
     }
 
     bool option_exists(const std::string& s, const std::list<option*>& e, option** o) {
-        std::list<option*>::const_iterator it = e.begin();
-        std::list<option*>::const_iterator end = e.end();
-        while(it != end) {
+        const_option_iter it = e.begin();
+        const_option_iter end = e.end();
+        for(const_option_iter it = e.begin(); it != end; ++it) {
             if((*it)->long_name() == s || (*it)->short_name() == s) {
                 *o = *it;
                 return true;
             }
-            ++it;
         }
         return false;
     }
 
     std::list<option*> m_optlist;
     std::list<arg*> m_posargs;
+    option* m_help_option;
 };
 
 // Overloaded Output Stream Operators
@@ -381,8 +411,9 @@ std::ostream& operator<< (std::ostream& out, const option& opt) {
 
 std::ostream& operator<< (std::ostream& out, const cmdline_parser& c) {
     out << "optional arguments: " << std::endl;
-    for(option* o : c.m_optlist) {
-        out << *o << std::endl;
+    std::list<option*>::const_iterator end = c.m_optlist.end();
+    for(std::list<option*>::const_iterator it = c.m_optlist.begin(); it != end; ++it) {
+        out << *(*it) << std::endl;
     }
     return out;
 }
