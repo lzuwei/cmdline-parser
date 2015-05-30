@@ -1,6 +1,5 @@
 # cmdline-parser
-Simple Command Line Parser that reads gnu optget styled options
-
+Simple Header Only Command Line Parser that reads gnu optget styled options
 
 ```
 ./example1 --help
@@ -11,6 +10,14 @@ optional arguments:
 --abc, ABC	long option
 --unused, UNUSED	unused option
 ```
+
+## Build
+
+Header only implementation.
+
+## Dependencies
+
+STL Library 
 
 ## Usage Example
 

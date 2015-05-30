@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
         //parse the command line arguments
         c.parseopt(argc, argv);
     }
-    catch(OptionParsingError e) {
+    catch (OptionParsingError e) {
         //capture and print any parsing errors
         std::cerr << e.what() << std::endl;
         return 1;
@@ -32,7 +32,7 @@ int main(int argc, char* argv[]) {
 
     //default help option is added when cmdline_parser is created
     //check if the switch is set by calling is_help_selected()
-    if(c.is_help_selected()) {
+    if (c.is_help_selected()) {
         //display options by calling output operator
         std::cout << c;
     }
@@ -45,3 +45,4 @@ int main(int argc, char* argv[]) {
     std::cout << "arg2: " << arg2.value() << std::endl;
 
     return 0;
+}
