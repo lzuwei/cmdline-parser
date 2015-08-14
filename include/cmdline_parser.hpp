@@ -63,8 +63,18 @@ int parse_value(const std::string& value) {
 }
 
 template<>
+unsigned int parse_value(const std::string& value) {
+    return (unsigned int)stoi(value);
+}
+
+template<>
 short parse_value(const std::string& value) {
     return (short)stoi(value);
+}
+
+template<>
+unsigned short parse_value(const std::string& value) {
+    return (unsigned short)stoi(value);
 }
 
 template<>
@@ -264,12 +274,24 @@ private:
 
 class arg {
 public:
+    arg() {}
+    arg(const std::string& description) :
+            m_description(description) {}
+    std::string description() { return m_description; }
     virtual void parse_arguments(const std::string& arguments) = 0;
+private:
+    std::string m_description;
+
+    friend std::ostream& operator<< (std::ostream& out, const arg& argument);
 };
 
 template<typename T>
 class positional_arg : public arg {
 public:
+    positional_arg() :
+            arg() {}
+    positional_arg(const std::string& description) :
+            arg(description) {}
     void parse_arguments(const std::string& arguments) {
         try {
             m_value = parse_value<T>(arguments);
@@ -331,6 +353,7 @@ public:
     }
 
     void parseopt(int argc, char* argv[]) {
+        arg_iter curr_arg = m_posargs.begin();
         for(int i = 1; i < argc; ++i) {
             std::string argument(argv[i]);
             if(is_long_option(argument)) {
@@ -354,16 +377,25 @@ public:
                 }
             }
             else {
-                std::cout << "positional args: " << argv[i] << std::endl;
-                if(!m_posargs.empty()) {
-                    arg* a = m_posargs.front();
+                if(curr_arg != m_posargs.end()) {
+                    arg* a = *curr_arg;
                     a->parse_arguments(argument);
-                    m_posargs.pop_front();
+                    ++curr_arg;
                 }
                 else {
                     throw InvalidOptionError("unexpected positional arguments found: " + argument);
                 }
             }
+        }
+
+        //if help is selected just return and allow user to handle it
+        //alternatively can add functionality to allow user to inject it into parser
+        if(is_help_selected())
+            return;
+
+        //check for remaining unpopulated positional argumments
+        if(curr_arg != m_posargs.end()) {
+            throw MissingArgumentError("missing positional arguments.");
         }
     }
 
@@ -409,11 +441,24 @@ std::ostream& operator<< (std::ostream& out, const option& opt) {
     return out;
 }
 
+std::ostream& operator<< (std::ostream& out, const arg& argument) {
+    out << argument.m_description;
+    return out;
+}
+
 std::ostream& operator<< (std::ostream& out, const cmdline_parser& c) {
     out << "optional arguments: " << std::endl;
-    std::list<option*>::const_iterator end = c.m_optlist.end();
-    for(std::list<option*>::const_iterator it = c.m_optlist.begin(); it != end; ++it) {
+    cmdline_parser::const_option_iter opt_end = c.m_optlist.end();
+    for(cmdline_parser::const_option_iter it = c.m_optlist.begin(); it != opt_end; ++it) {
         out << *(*it) << std::endl;
+    }
+    out << std::endl;
+    out << "positional arguments:" << std::endl;
+    cmdline_parser::const_arg_iter arg_end = c.m_posargs.end();
+    int i = 1;
+    for(cmdline_parser::const_arg_iter it = c.m_posargs.begin(); it != arg_end; ++it) {
+        out << "arg" << i << "\t" << *(*it) << std::endl;
+        ++i;
     }
     return out;
 }

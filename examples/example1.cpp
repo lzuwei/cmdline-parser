@@ -10,8 +10,8 @@ int main(int argc, char* argv[]) {
     switch_option unused_option("unused", "unused option");
 
     //positional arguments are arguments after options
-    positional_arg<std::string> arg1;
-    positional_arg<std::string> arg2;
+    positional_arg<std::string> arg1("argument 1");
+    positional_arg<std::string> arg2("argument 2");
 
     cmdline_parser c;
     c.add(host_option);
@@ -35,6 +35,7 @@ int main(int argc, char* argv[]) {
     if (c.is_help_selected()) {
         //display options by calling output operator
         std::cout << c;
+        return 0;
     }
 
     //print out options
