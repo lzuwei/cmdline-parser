@@ -116,7 +116,8 @@ protected:
     bool m_isset;
 
 public:
-    option(const std::string& short_name, const std::string& long_name, const std::string& description, bool required = false) :
+    option(const std::string& short_name, const std::string& long_name,
+           const std::string& description, bool required = false) :
         m_description(description),
         m_required(required),
         m_isset(false) {
@@ -152,6 +153,10 @@ public:
 
     virtual ~option() {
 
+    }
+
+    bool operator()() {
+        return isset();
     }
 
     bool isset() {
@@ -199,7 +204,8 @@ private:
 
 class switch_option : public option {
 public:
-    switch_option(const std::string& short_name, const std::string& long_name, const std::string& description, bool default_isset = false) :
+    switch_option(const std::string& short_name, const std::string& long_name,
+                  const std::string& description, bool default_isset = false) :
         option(short_name, long_name, description, false) {
             m_isset = default_isset;
     }
@@ -218,21 +224,31 @@ public:
 template<typename T>
 class value_option : public option {
 public:
-    value_option(const std::string& short_name, const std::string& long_name, const std::string& description, bool required, T default_value) :
+    value_option(const std::string& short_name, const std::string& long_name, const std::string& description,
+                 bool required, T default_value) :
         option(short_name, long_name, description, required),
         m_value(default_value) {
-
     }
 
     value_option(const std::string& name, const std::string& description, bool required, T default_value) :
         option(name, description, required),
         m_value(default_value) {
+    }
 
+    value_option(const std::string& short_name, const std::string& long_name, const std::string& description,
+                 bool required) :
+            option(short_name, long_name, description) {
+    }
+
+    value_option(const std::string& name, const std::string& description, bool required) :
+        option(name, description, required) {
     }
 
     int parse_arguments(int argc, char* argv[], int cur_pos) {
         try {
-            return consume_n_arguments(argc, argv, cur_pos + 1, 1); //capture n arguments after option;
+            int num_parsed = consume_n_arguments(argc, argv, cur_pos + 1, 1); //capture n arguments after option;
+            m_isset = true; //if parsing is successful, set isset as true to indicate option is set.
+            return num_parsed;
         }
         catch(std::invalid_argument e) {
             throw InvalidArgumentFormatError("invalid argument format: " + std::string(argv[cur_pos + 1])); 
@@ -262,7 +278,9 @@ private:
             }
             else {
                 std::ostringstream oss;
-                oss << "missing option arguments, expected: " << num_consume << " got: " << num_consume - left << std::endl;
+                oss << "missing option arguments, expected: " << num_consume
+                << " got: " << num_consume - left
+                << std::endl;
                 throw MissingArgumentError(oss.str());                
             }        
         }

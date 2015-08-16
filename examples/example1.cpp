@@ -3,7 +3,7 @@
 int main(int argc, char* argv[]) {
 
     //value options captures options that takes in arguments with argument format checking
-    value_option<std::string> host_option("H", "host", "server host name", false, "127.0.0.1");
+    value_option<std::string> host_option("H", "host", "server host name", true, "127.0.0.1");
 
     //switch option captures flag options
     switch_option long_option("abc", "long option", true);
@@ -37,6 +37,8 @@ int main(int argc, char* argv[]) {
         std::cout << c;
         return 0;
     }
+
+    std::cout << "host is set: " << host_option() << std::endl;
 
     //print out options
     std::cout << "host: " << host_option.value() << std::endl;
