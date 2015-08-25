@@ -341,12 +341,6 @@ public:
 
     ~cmdline_parser() {
         //cleanup
-        option_iter end = m_optlist.end();
-        for(option_iter it = m_optlist.begin(); it != end; ++it) {
-            if((*it)->name() == "help") {
-                m_optlist.erase(it);
-            }
-        }
         delete m_help_option;
     }
 
