@@ -42,8 +42,8 @@ int main(int argc, char* argv[]) {
 
     //print out options
     std::cout << "host: " << host_option.value() << std::endl;
-    std::cout << "abc: " << long_option.isset() << std::endl;
-    std::cout << "unused: " << unused_option.isset() << std::endl;
+    std::cout << "abc: " << long_option.is_set() << std::endl;
+    std::cout << "unused: " << unused_option.is_set() << std::endl;
     std::cout << "arg1: " << arg1.value() << std::endl;
     std::cout << "arg2: " << arg2.value() << std::endl;
 

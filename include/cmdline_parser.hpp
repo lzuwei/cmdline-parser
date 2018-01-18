@@ -12,40 +12,45 @@
 // Parsing Exceptions
 class OptionParsingError : public std::runtime_error {
 public:
-    OptionParsingError(const std::string& message) :
-        std::runtime_error(message) {
+    explicit OptionParsingError(const std::string& message)
+            :
+            std::runtime_error(message) {
 
     }
 };
 
 class InvalidOptionFormatError : public OptionParsingError {
 public:
-    InvalidOptionFormatError(const std::string& message) :
-        OptionParsingError(message) {
+    explicit InvalidOptionFormatError(const std::string& message)
+            :
+            OptionParsingError(message) {
 
     }
 };
 
 class InvalidOptionError : public OptionParsingError {
 public:
-    InvalidOptionError(const std::string& message) :
-        OptionParsingError(message) {
+    explicit InvalidOptionError(const std::string& message)
+            :
+            OptionParsingError(message) {
 
     }
 };
 
 class InvalidArgumentFormatError : public OptionParsingError {
 public:
-    InvalidArgumentFormatError(const std::string& message) :
-        OptionParsingError(message) {
+    explicit InvalidArgumentFormatError(const std::string& message)
+            :
+            OptionParsingError(message) {
 
     }
 };
 
 class MissingArgumentError : public OptionParsingError {
 public:
-    MissingArgumentError(const std::string& message) :
-        OptionParsingError(message) {
+    explicit MissingArgumentError(const std::string& message)
+            :
+            OptionParsingError(message) {
 
     }
 };
@@ -64,17 +69,17 @@ int parse_value(const std::string& value) {
 
 template<>
 unsigned int parse_value(const std::string& value) {
-    return (unsigned int)stoi(value);
+    return (unsigned int) stoi(value);
 }
 
 template<>
 short parse_value(const std::string& value) {
-    return (short)stoi(value);
+    return (short) stoi(value);
 }
 
 template<>
 unsigned short parse_value(const std::string& value) {
-    return (unsigned short)stoi(value);
+    return (unsigned short) stoi(value);
 }
 
 template<>
@@ -117,38 +122,38 @@ protected:
 
 public:
     option(const std::string& short_name, const std::string& long_name,
-           const std::string& description, bool required = false) :
-        m_description(description),
-        m_required(required),
-        m_isset(false) {
-            if(!is_valid_option_format(short_name) || !is_valid_option_format(long_name)) {
-                throw InvalidOptionFormatError("invalid option format, option cannot start with '-'");
+           const std::string& description, bool required = false)
+            :
+            m_description(description),
+            m_required(required),
+            m_isset(false) {
+        if (!is_valid_option_format(short_name) || !is_valid_option_format(long_name)) {
+            throw InvalidOptionFormatError("invalid option format, option cannot start with '-'");
+        } else {
+            if (!is_short_name(short_name)) {
+                throw InvalidOptionFormatError("short option can only have 1 character");
             }
-            else {
-                if(!is_short_name(short_name)) {
-                    throw InvalidOptionFormatError("short option can only have 1 character");
-                }
-                if(!is_long_name(long_name)) {
-                    throw InvalidOptionFormatError("long option must be longer than 1 character");
-                }
+            if (!is_long_name(long_name)) {
+                throw InvalidOptionFormatError("long option must be longer than 1 character");
             }
-            m_short_name.assign(short_name);
-            m_long_name.assign(long_name);
+        }
+        m_short_name.assign(short_name);
+        m_long_name.assign(long_name);
     }
 
-    option(const std::string& name,  const std::string& description, bool required = false) :
-        m_description(description),
-        m_required(required),
-        m_isset(false) {
-            if(!is_valid_option_format(name)) {
-                throw InvalidOptionFormatError("option name cannot start with '-'");
+    option(const std::string& name, const std::string& description, bool required = false)
+            :
+            m_description(description),
+            m_required(required),
+            m_isset(false) {
+        if (!is_valid_option_format(name)) {
+            throw InvalidOptionFormatError("option name cannot start with '-'");
+        } else {
+            if (!is_long_name(name)) {
+                throw InvalidOptionFormatError("long option name required");
             }
-            else {
-                if(!is_long_name(name)) {
-                    throw InvalidOptionFormatError("long option name required");
-                }
-            }
-            m_long_name = name;
+        }
+        m_long_name = name;
     }
 
     virtual ~option() {
@@ -156,10 +161,10 @@ public:
     }
 
     bool operator()() {
-        return isset();
+        return is_set();
     }
 
-    bool isset() {
+    bool is_set() {
         return m_isset;
     }
 
@@ -186,17 +191,19 @@ public:
 public:
     virtual int parse_arguments(int argc, char* argv[], int cur_pos) = 0;
 
-    friend std::ostream& operator<< (std::ostream& out, const option& opt);
+    friend std::ostream& operator<<(std::ostream& out, const option& opt);
 
 private:
     bool is_valid_option_format(const std::string& opt) {
-        if(opt.find("-") == 0)
+        if (opt.find('-') == 0)
             return false;
         return true;
     }
+
     bool is_long_name(const std::string& opt) {
         return opt.length() > 1;
     }
+
     bool is_short_name(const std::string& opt) {
         return opt.length() == 1;
     }
@@ -205,14 +212,16 @@ private:
 class switch_option : public option {
 public:
     switch_option(const std::string& short_name, const std::string& long_name,
-                  const std::string& description, bool default_isset = false) :
-        option(short_name, long_name, description, false) {
-            m_isset = default_isset;
+                  const std::string& description, bool default_isset = false)
+            :
+            option(short_name, long_name, description, false) {
+        m_isset = default_isset;
     }
 
-    switch_option(const std::string& name, const std::string& description, bool default_isset = false) :
-        option(name, description, false) {
-            m_isset = default_isset;
+    switch_option(const std::string& name, const std::string& description, bool default_isset = false)
+            :
+            option(name, description, false) {
+        m_isset = default_isset;
     }
 
     int parse_arguments(int argc, char* argv[], int cur_pos) {
@@ -225,23 +234,27 @@ template<typename T>
 class value_option : public option {
 public:
     value_option(const std::string& short_name, const std::string& long_name, const std::string& description,
-                 bool required, T default_value) :
-        option(short_name, long_name, description, required),
-        m_value(default_value) {
+                 bool required, T default_value)
+            :
+            option(short_name, long_name, description, required),
+            m_value(default_value) {
     }
 
-    value_option(const std::string& name, const std::string& description, bool required, T default_value) :
-        option(name, description, required),
-        m_value(default_value) {
+    value_option(const std::string& name, const std::string& description, bool required, T default_value)
+            :
+            option(name, description, required),
+            m_value(default_value) {
     }
 
     value_option(const std::string& short_name, const std::string& long_name, const std::string& description,
-                 bool required) :
+                 bool required)
+            :
             option(short_name, long_name, description) {
     }
 
-    value_option(const std::string& name, const std::string& description, bool required) :
-        option(name, description, required) {
+    value_option(const std::string& name, const std::string& description, bool required)
+            :
+            option(name, description, required) {
     }
 
     int parse_arguments(int argc, char* argv[], int cur_pos) {
@@ -250,8 +263,8 @@ public:
             m_isset = true; //if parsing is successful, set isset as true to indicate option is set.
             return num_parsed;
         }
-        catch(std::invalid_argument e) {
-            throw InvalidArgumentFormatError("invalid argument format: " + std::string(argv[cur_pos + 1])); 
+        catch (std::invalid_argument e) {
+            throw InvalidArgumentFormatError("invalid argument format: " + std::string(argv[cur_pos + 1]));
         }
     }
 
@@ -262,29 +275,28 @@ public:
 private:
 
     bool is_argument(const std::string& s) {
-        return s.find("-") != 0;
+        return s.find('-') != 0;
     }
 
     int consume_n_arguments(int argc, char* argv[], int cur_pos, int num_consume) {
         //while not end of all arguments, consume all arguments that are not options
         //stop when you encounter a new option
         int left = num_consume;
-        while(cur_pos < argc && left > 0) {
-            if(is_argument(std::string(argv[cur_pos]))) {
+        while (cur_pos < argc && left > 0) {
+            if (is_argument(std::string(argv[cur_pos]))) {
                 //std::cout << "parameter: " << argv[cur_pos] << std::endl;
                 m_value = parse_value<T>(argv[cur_pos]);
                 left--;
                 cur_pos++;
-            }
-            else {
+            } else {
                 std::ostringstream oss;
                 oss << "missing option arguments, expected: " << num_consume
-                << " got: " << num_consume - left
-                << std::endl;
-                throw MissingArgumentError(oss.str());                
-            }        
+                    << " got: " << num_consume - left
+                    << std::endl;
+                throw MissingArgumentError(oss.str());
+            }
         }
-        return cur_pos - 1;   
+        return cur_pos - 1;
     }
 
     T m_value;
@@ -293,35 +305,45 @@ private:
 class arg {
 public:
     arg() {}
-    arg(const std::string& description) :
+
+    arg(const std::string& description)
+            :
             m_description(description) {}
+
     std::string description() { return m_description; }
+
     virtual void parse_arguments(const std::string& arguments) = 0;
+
 private:
     std::string m_description;
 
-    friend std::ostream& operator<< (std::ostream& out, const arg& argument);
+    friend std::ostream& operator<<(std::ostream& out, const arg& argument);
 };
 
 template<typename T>
 class positional_arg : public arg {
 public:
-    positional_arg() :
+    positional_arg()
+            :
             arg() {}
-    positional_arg(const std::string& description) :
+
+    positional_arg(const std::string& description)
+            :
             arg(description) {}
+
     void parse_arguments(const std::string& arguments) {
         try {
             m_value = parse_value<T>(arguments);
         }
-        catch(std::invalid_argument e) {
+        catch (std::invalid_argument e) {
             throw InvalidArgumentFormatError("invalid argument format: " + arguments);
-        }        
+        }
     }
 
     T value() {
         return m_value;
     }
+
 private:
     T m_value;
 };
@@ -333,7 +355,8 @@ public:
     typedef std::list<arg*>::iterator arg_iter;
     typedef std::list<arg*>::const_iterator const_arg_iter;
 
-    cmdline_parser() :
+    cmdline_parser()
+            :
             m_help_option(new switch_option("h", "help", "displays this help message", false)) {
         //add a default help option
         add(m_help_option);
@@ -361,40 +384,35 @@ public:
     }
 
     bool is_help_selected() {
-        return m_help_option->isset();
+        return m_help_option->is_set();
     }
 
     void parseopt(int argc, char* argv[]) {
         arg_iter curr_arg = m_posargs.begin();
-        for(int i = 1; i < argc; ++i) {
+        for (int i = 1; i < argc; ++i) {
             std::string argument(argv[i]);
-            if(is_long_option(argument)) {
+            if (is_long_option(argument)) {
                 std::string option_name = argument.substr(2);
                 option* opt = NULL;
-                if(option_exists(option_name, m_optlist, &opt)) {                    
+                if (option_exists(option_name, m_optlist, &opt)) {
                     i = opt->parse_arguments(argc, argv, i);
-                }
-                else {
+                } else {
                     throw InvalidOptionError("invalid option " + argument);
                 }
-            }         
-            else if(is_short_option(argument)) {
+            } else if (is_short_option(argument)) {
                 std::string option_name = argument.substr(1);
                 option* opt = NULL;
-                if(option_exists(option_name, m_optlist, &opt)) {
+                if (option_exists(option_name, m_optlist, &opt)) {
                     i = opt->parse_arguments(argc, argv, i);
-                }
-                else {
+                } else {
                     throw InvalidOptionError("invalid option " + argument);
                 }
-            }
-            else {
-                if(curr_arg != m_posargs.end()) {
+            } else {
+                if (curr_arg != m_posargs.end()) {
                     arg* a = *curr_arg;
                     a->parse_arguments(argument);
                     ++curr_arg;
-                }
-                else {
+                } else {
                     throw InvalidOptionError("unexpected positional arguments found: " + argument);
                 }
             }
@@ -402,21 +420,21 @@ public:
 
         //if help is selected just return and allow user to handle it
         //alternatively can add functionality to allow user to inject it into parser
-        if(is_help_selected())
+        if (is_help_selected())
             return;
 
         //check for remaining unpopulated positional argumments
-        if(curr_arg != m_posargs.end()) {
+        if (curr_arg != m_posargs.end()) {
             throw MissingArgumentError("missing positional arguments.");
         }
     }
 
-    friend std::ostream& operator<< (std::ostream& out, const cmdline_parser& c);
+    friend std::ostream& operator<<(std::ostream& out, const cmdline_parser& c);
 
 private:
 
-    bool is_short_option(const std::string& s) {    
-        return s.find("-") == 0;   
+    bool is_short_option(const std::string& s) {
+        return s.find('-') == 0;
     }
 
     bool is_long_option(const std::string& s) {
@@ -424,10 +442,10 @@ private:
     }
 
     bool option_exists(const std::string& s, const std::list<option*>& e, option** o) {
-        const_option_iter it = e.begin();
+        const_option_iter it;
         const_option_iter end = e.end();
-        for(const_option_iter it = e.begin(); it != end; ++it) {
-            if((*it)->long_name() == s || (*it)->short_name() == s) {
+        for (it = e.begin(); it != end; ++it) {
+            if ((*it)->long_name() == s || (*it)->short_name() == s) {
                 *o = *it;
                 return true;
             }
@@ -441,34 +459,33 @@ private:
 };
 
 // Overloaded Output Stream Operators
-std::ostream& operator<< (std::ostream& out, const option& opt) {
-    if(opt.m_short_name.empty()) {
+std::ostream& operator<<(std::ostream& out, const option& opt) {
+    if (opt.m_short_name.empty()) {
         std::string uppercase(opt.m_long_name);
         std::transform(opt.m_long_name.begin(), opt.m_long_name.end(), uppercase.begin(), ::toupper);
         out << "--" << opt.m_long_name << ", " << uppercase << "\t" << opt.m_description;
-    }
-    else
-        out << "-" << opt.m_short_name <<", --" << opt.m_long_name << "\t" << opt.m_description;
+    } else
+        out << "-" << opt.m_short_name << ", --" << opt.m_long_name << "\t" << opt.m_description;
 
     return out;
 }
 
-std::ostream& operator<< (std::ostream& out, const arg& argument) {
+std::ostream& operator<<(std::ostream& out, const arg& argument) {
     out << argument.m_description;
     return out;
 }
 
-std::ostream& operator<< (std::ostream& out, const cmdline_parser& c) {
+std::ostream& operator<<(std::ostream& out, const cmdline_parser& c) {
     out << "optional arguments: " << std::endl;
     cmdline_parser::const_option_iter opt_end = c.m_optlist.end();
-    for(cmdline_parser::const_option_iter it = c.m_optlist.begin(); it != opt_end; ++it) {
+    for (cmdline_parser::const_option_iter it = c.m_optlist.begin(); it != opt_end; ++it) {
         out << *(*it) << std::endl;
     }
     out << std::endl;
     out << "positional arguments:" << std::endl;
     cmdline_parser::const_arg_iter arg_end = c.m_posargs.end();
     int i = 1;
-    for(cmdline_parser::const_arg_iter it = c.m_posargs.begin(); it != arg_end; ++it) {
+    for (cmdline_parser::const_arg_iter it = c.m_posargs.begin(); it != arg_end; ++it) {
         out << "arg" << i << "\t" << *(*it) << std::endl;
         ++i;
     }
