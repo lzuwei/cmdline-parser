@@ -1,6 +1,6 @@
 #include "../include/cmdline_parser.hpp"
 
-int main(int argc, char* argv[]) {
+int main(int argc, char *argv[]) {
 
     //value options captures options that takes in arguments with argument format checking
     value_option<std::string> host_option("H", "host", "server host name", true, "127.0.0.1");
